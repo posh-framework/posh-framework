@@ -21,7 +21,7 @@
 
 
 param (
-   [string] $ScriptPath = '', #$(throw "The parameter -ScriptPath is required."),
+   [string] $ScriptPath = '',
    [boolean] $OU = $False,
    [string] $Parameters = '',
    [string] $ADSPath = $Null
@@ -151,24 +151,27 @@ function Show-ScriptChooser
 	$scripts = Get-ChildItem -Path $FileText.Text -Filter '*.ps1'
 	$path = $FileText.Text
 	$i = 0
-	foreach($script in $scripts)
+	if( $scripts.length -gt 0 )
 	{
-	    #Find ps1 files in the $path that have framework variables
-	    #Then dot source the script from a [ScriptBlock] "sand box"
-	    #that matches and grab the value of the Description
-	    $ScriptMatch = Get-Content $path\$script | Select-String -pattern 'ScriptBlock','ScriptDescription','ScriptParameters'
-	    if( $ScriptMatch.Count -gt 2 )
+	    foreach($script in $scripts)
 	    {
-		$eval = 
+		#Find ps1 files in the $path that have framework variables
+		#Then dot source the script from a [ScriptBlock] "sand box"
+		#that matches and grab the value of the Description
+		$ScriptMatch = Get-Content $path\$script | Select-String -pattern 'ScriptBlock','ScriptDescription','ScriptParameters'
+		if( $ScriptMatch.Count -gt 2 )
 		{
-		    . $path\$script
-		    $LI = New-Object System.Windows.Forms.ListViewItem
-		    $LI.Name = $script.Name
-		    $LI.Text = $script.Name
-		    $kill = $LI.SubItems.add($ScriptDescription)
-		    $kill = $ScriptList.Items.Add($LI)
+		    $eval = 
+		    {
+			. $path\$script
+			$LI = New-Object System.Windows.Forms.ListViewItem
+			$LI.Name = $script.Name
+			$LI.Text = $script.Name
+			$kill = $LI.SubItems.add($ScriptDescription)
+			$kill = $ScriptList.Items.Add($LI)
+		    }
+		    $eval.Invoke()
 		}
-		$eval.Invoke()
 	    }
 	}
     }
