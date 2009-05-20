@@ -18,8 +18,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 param (
    [string] $ScriptPath = '',
    [boolean] $OU = $False,
@@ -155,6 +153,10 @@ function Show-ScriptChooser
 	{
 	    foreach($script in $scripts)
 	    {
+		if( $script.Name -eq 'framework.ps1')
+		{
+		    break
+		}
 		#Find ps1 files in the $path that have framework variables
 		#Then dot source the script from a [ScriptBlock] "sand box"
 		#that matches and grab the value of the Description
@@ -249,7 +251,6 @@ function Show-ScriptChooser
     $yOffset += 305
     $form.controls.add($ScriptList)
     Populate-Scripts
-    
 
     $finishButton = New-Object Windows.Forms.Button
     $finishButton.Location = New-Object Drawing.Point 360,$yOffset
@@ -265,7 +266,6 @@ function Show-ScriptChooser
 	return ''
     }
     $ScriptPath = $FileText.Text + '\' + $ScriptList.SelectedItems[0].Text
-
     #Return ScriptPath and OU
     $return_object = New-Object PSObject
     $return_object | Add-Member NoteProperty OU $OUCheckBox.Checked
@@ -659,7 +659,6 @@ if($ScriptPath -eq '')
 	$ScriptPath = $Chooser.ScriptPath
 	$OU = $Chooser.OU
     }
-
 }
 #Get the parameters passed in, if they aren't then we'll set them
 . $ScriptPath
