@@ -23,7 +23,7 @@ if($OU -eq $False)
     $ScriptParameters += $param
 }
 
-$ScriptDescription = 'Copies a file to a remote computer using the administrative C$ Share.'
+$ScriptDescription = 'Copies a file to a remote computer or computers.'
 $ScriptThreaded = $True
 $ScriptADSObjectType = 'computer'
 

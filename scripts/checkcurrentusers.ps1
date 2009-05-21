@@ -13,7 +13,7 @@ if($OU -eq $False)
     $param | add-member NoteProperty Prompt 'The computer you wish to find out the current user for'
     $ScriptParameters += $param
 }
-$ScriptDescription = 'Script for checking the current user of a computer or computers'
+$ScriptDescription = 'Checks the current user of a computer or computers'
 $ScriptThreaded = $True
 $ScriptADSObjectType = 'computer'
 
