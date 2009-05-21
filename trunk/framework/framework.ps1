@@ -1,5 +1,7 @@
 
 #  Copyright (C) 2009 Carson Gee
+#  Thread- Functions copyright Adam Weigert
+#
 #  x@carsongee.com
 #  242 Michigan St.
 #  Lawrence, KS 66044
@@ -21,14 +23,14 @@
 param (
    [string] $ScriptPath = '',
    [boolean] $OU = $False,
-   [string] $Parameters = '',
+   $Parameters = $Null,
    [string] $ADSPath = $Null
 )
 
 function Parse-Parameters {
     param (
         [PSObject] $ScriptParameters,
-        [String] $ArgParameters
+        $ArgParameters
     )
 
     if($ScriptParameters.length -eq 0)
@@ -36,7 +38,6 @@ function Parse-Parameters {
 	#Don't care what was passed in, there are no parameters
 	return $ScriptParameters
     }
-    
     if($ArgParameters -ne $Null -and $ArgParameters -ne '')
     {
 	$PassedParameters = @();
@@ -51,7 +52,6 @@ function Parse-Parameters {
 	    $param = New-Object PSObject
             $param | add-member noteproperty Name $values[0]
             $param | add-member noteproperty Value $nameValue
-            $param | add-member noteproperty Prompt $values[2]
             $PassedParameters += $param
 	}
     }
@@ -65,7 +65,7 @@ function Parse-Parameters {
 	    $Item.Value = $PassedParam.Value
 	}
     }
-    return $ScriptParameters
+    return ,$ScriptParameters
 
 }
 
@@ -74,9 +74,8 @@ function Build-Parameters
     param (
         $OU = $False,
         $Parameters = $Null,
-        $ADSPath = $Null
+        $ADSPath = ''
     )
-
     $getADSPath = $False
     if($OU -eq $True -and $ADSPath -ne '')
     {
@@ -87,7 +86,6 @@ function Build-Parameters
         $getADSPath = $True
     }
     $getParams = $False
-
     if( $Parameters.length -gt 0 )
     {
 	foreach($Parameter in $Parameters)
@@ -664,7 +662,8 @@ if($ScriptPath -eq '')
 . $ScriptPath
 
 $CleanedParameters = Parse-Parameters $ScriptParameters $Parameters
-$params = Build-Parameters $OU $ScriptParameters $ADSPath
+
+$params = Build-Parameters $OU $CleanedParameters $ADSPath
 
 if($params.Parameters.length -gt 0)
 {
