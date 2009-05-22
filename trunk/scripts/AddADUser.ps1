@@ -34,7 +34,7 @@ if($OU -eq $False)
     #Define parameters
     $param = New-Object PSObject
     $param | add-member NoteProperty Name 'Computer'
-    $param | add-member NoteProperty Value '.'
+    $param | add-member NoteProperty Value ([ADSI]"WinNT://$env:ComputerName").name
     $param | add-member NoteProperty Prompt 'The computer that contains the local group you are adding to'
     $ScriptParameters += $param
 }
