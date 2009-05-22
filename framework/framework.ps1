@@ -144,6 +144,10 @@ function Show-ScriptChooser
     {
 	$kill = $ScriptList.Items.Clear()
 	#Test populating listview
+	if( (Test-Path -path $FileText.Text) -ne $True)
+	{
+	    return $Null
+	}
 	$scripts = Get-ChildItem -Path $FileText.Text -Filter '*.ps1'
 	$path = $FileText.Text
 	$i = 0
@@ -195,6 +199,7 @@ function Show-ScriptChooser
     $fileText.Size = New-Object Drawing.Point 150, 20
     $currentDir = Get-Location
     $fileText.Text = $currentDir.Path
+    $fileText.add_TextChanged({Populate-Scripts})
     $form.controls.add($fileText)
 
     #Stupid MTA/STA junk, use com instead of .NET for browser dialog
@@ -261,7 +266,9 @@ function Show-ScriptChooser
     $kill = $form.ShowDialog()
     if( $ScriptList.SelectedItems[0].Text -eq $Null )
     {
-	return ''
+	$return_object = New-Object PSObject
+	$return_object | Add-Member NoteProperty ScriptPath ''
+	return $return_object
     }
     $ScriptPath = $FileText.Text + '\' + $ScriptList.SelectedItems[0].Text
     #Return ScriptPath and OU
@@ -434,6 +441,7 @@ function Get-ChildOUs($searchpath, $domain)
 	$ADsPath = "LDAP://$searchpath" + $searchDomain	
 	$root = [ADSI]$ADsPath
 	$Searcher = new-object DirectoryServices.DirectorySearcher($root)
+	$Searcher.Sort = New-Object DirectoryServices.sortoption('Name', 'Ascending')
 	$Searcher.SearchScope = "OneLevel"
 	
 	$Searcher.filter = "(objectClass=organizationalUnit)"
