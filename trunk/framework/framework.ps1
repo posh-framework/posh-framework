@@ -326,7 +326,6 @@ function Show-ParamGUI($getOU, $getParams, $parameters)
 	$OUTree = New-Object Windows.Forms.TreeView
 	$OUTree.Location = New-Object Drawing.Point 10, 90
 	$OUTree.Size = New-Object Drawing.Point 300, 250
-	$kill = populateTree $OUTree
 	$yOffset = 350
 	   
 	$form.controls.add($domainLabel)
@@ -373,6 +372,7 @@ function Show-ParamGUI($getOU, $getParams, $parameters)
     #Show the form
 
     $form.Size = New-Object Drawing.Point 320, ($yOffset+50)
+    $form.add_Shown({ $kill = populateTree $OUTree })
     $kill = $form.ShowDialog()
     #Return PSObject with ADSPath and parameter array
     $return_val = New-Object PSObject
@@ -705,11 +705,20 @@ if($OU -eq $True -and $ADSPath -ne '')
     #We will call it for each object returned with the variable
     #$ADSObject.  If it has $ScriptThreaded = $True then
     #we spawn a thread for each $ADSObject.
+    $ADSObjectCount = 0
     $threads = @();
     foreach( $ADSObject in $ADSObjects )
     {
 	if( $ScriptThreaded -eq $True )
 	{
+	    if( ($ADSObjectCount % 64) -eq 0 )
+	    {
+		#Limit number of threads to 32 to prevent out
+		#of memory problems
+		foreach( $thread in $threads ) { Join-Thread $thread }
+		$threads = @();
+	    }
+
 	    $thread = New-Thread
 	    Set-ThreadVariable $thread 'ADSObject' $ADSObject
 	    Set-ThreadVariable $thread 'OU' $OU
