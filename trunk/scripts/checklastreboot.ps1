@@ -3,7 +3,7 @@
 
 $ScriptParameters = $Null
 
-if($OU -eq $False)
+if($OU -eq $False -and $CSV -eq $False)
 {
     #Define parameters
     $ScriptParameters = @();
@@ -31,6 +31,10 @@ $ScriptBlock =
     if($OU -eq $True)
     {
 	$script:comp = $ADSObject.Properties.name[0]
+    }
+    elseif($CSV -eq $True)
+    {
+	$script:comp = $CSVObject.Computer
     }
     else
     {
