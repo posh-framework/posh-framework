@@ -13,7 +13,7 @@ $param | add-member NoteProperty Value ''
 $param | add-member NoteProperty Prompt 'Please enter the path you would like the file to be copied to.'
 $ScriptParameters += $param
 
-if($OU -eq $False)
+if($OU -eq $False -and $CSV -eq $False)
 {
     #Define parameters
     $param = New-Object PSObject
@@ -34,6 +34,10 @@ $ScriptBlock =
     if($OU -eq $True)
     {
 	$script:comp = $ADSObject.Properties.name[0]
+    }
+    elseif($CSV -eq $True)
+    {
+	$script:comp = $CSVObject.Computer
     }
     else
     {

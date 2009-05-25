@@ -8,7 +8,7 @@ $param | add-member NoteProperty Value ''
 $param | add-member NoteProperty Prompt 'Used to filter the interesting network adapter, can be something like .168. or 192.168.'
 $ScriptParameters += $param
 
-if($OU -eq $False)
+if($OU -eq $False -and $CSV -eq $False)
 {
     #Define parameters
     $ScriptParameters = @();
@@ -31,6 +31,10 @@ $ScriptBlock =
     if($OU -eq $True)
     {
 	$script:comp = $ADSObject.Properties.name[0]
+    }
+    elseif($CSV -eq $True)
+    {
+	$script:comp = $CSVObject.Computer
     }
     else
     {

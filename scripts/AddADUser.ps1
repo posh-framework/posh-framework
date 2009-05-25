@@ -29,7 +29,7 @@ $param | add-member NoteProperty Value ''
 $param | add-member NoteProperty Prompt 'Enter the group to add the user or group to'
 $ScriptParameters += $param
 
-if($OU -eq $False)
+if($OU -eq $False -and $CSV -eq $False)
 {
     #Define parameters
     $param = New-Object PSObject
@@ -57,6 +57,10 @@ $ScriptBlock =
 	If($OU -eq $True)
 	{
 		$script:comp = $ADSObject.Properties.name[0]
+	}
+	ElseIf( $CSV -eq $True)
+	{
+	    $script:comp = $CSVObject.Computer
 	}
 	Else
 	{

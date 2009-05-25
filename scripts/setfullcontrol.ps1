@@ -21,7 +21,7 @@ $ScriptParameters += $param
 
 $ScriptDescription = 'Adds Full Control to a file or folder'
 $OU = $False
-
+$CSV = $False
 $ScriptBlock = 
 {
     function Add-FullControl($path, [ADSI]$user)
