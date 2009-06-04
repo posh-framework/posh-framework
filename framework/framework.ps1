@@ -417,23 +417,53 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
    	    $paramLabel = New-Object Windows.Forms.Label
 	    $paramLabel.Location = New-Object Drawing.Point 10, $yOffset
 	    $paramLabel.Size = New-Object Drawing.Point 150, 20
-	    $paramLabel.Text = $param.Name
+	    if( $param.Display -eq '' -or $param.Display -eq $Null)
+	    {
+		$paramLabel.Text = $param.Name
+	    }
+	    else
+	    {
+		$paramLabel.Text = $param.Display
+	    }
+	    
+	    #Look for parameter type field
+	    #If set, show an appropriate input type
+	    if( $param.Type -eq $Null -or $param.Type -eq '')
+	    {
+		$paramType = 'String'
+	    }
+	    else
+	    {
+		$paramType = $param.Type
+	    }
+	    switch -wildcard ($paramType.toLower())
+	    {
+		"bool*"
+		{
+		    $paramInput = New-Object Windows.Forms.CheckBox
+		    $paramInput.Location = New-Object Drawing.Point 165, $yOffset
+		    $ParamInput.Size = New-Object Drawing.Point 40, 20    
+		    $paramInput.checked = [System.Convert]::ToBoolean($param.Value)
+		}
+		default
+		{
+		    $paramInput = New-Object Windows.Forms.TextBox
+		    $paramInput.Location = New-Object Drawing.Point 165, $yOffset
+		    $paramInput.Size = New-Object Drawing.Point 235, 20
+		    $paramInput.Text = $param.Value
+		}
+	    }
 
-	    #Domain picking combo box
-	    $paramTextBox = New-Object Windows.Forms.TextBox
-	    $paramTextBox.Location = New-Object Drawing.Point 165, $yOffset
-	    $paramTextBox.Size = New-Object Drawing.Point 235, 20
-	    $paramTextBox.Text = $param.Value
 	    $toolTip = New-Object Windows.Forms.ToolTip
-	    $toolTip.SetToolTip($paramTextBox, $param.Prompt)
+	    $toolTip.SetToolTip($paramInput, $param.Prompt)
 	    $toolTip.active = $True
 	    $paramField = New-Object PSObject
 	    $paramField | add-member NoteProperty Name $param.Name
-	    $paramField | add-member NoteProperty Box $paramTextBox
+	    $paramField | add-member NoteProperty Box $paramInput
 	    $paramFields+=$paramField
 	    $yOffset+= 25
 	    $form.controls.add($paramLabel)
-	    $form.controls.add($paramTextBox)
+	    $form.controls.add($paramInput)
 	}
     }
 
@@ -466,7 +496,21 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 	{
 	    $return_param = New-Object PSObject
 	    $return_param | add-member NoteProperty Name $field.Name
-	    $return_param | add-member NoteProperty Value $field.Box.Text
+	    $type = $field.getType()
+	    $type = $field.Name
+	    switch -wildcard ($type)
+	    {
+		"CheckBox"
+		{
+		    $return_param | add-member NoteProperty Value $field.Box.Checked
+		}
+		default
+		{
+		    $return_param | add-member NoteProperty Value $field.Box.Text
+		}
+		    
+	    }
+
 	    $return_params += $return_param
         }
 	$return_val | add-member NoteProperty Parameters $return_params
