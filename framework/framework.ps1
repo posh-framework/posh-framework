@@ -328,7 +328,7 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
     
     $kill = [reflection.assembly]::LoadWithPartialName("System.Windows.Forms")
     $form = New-Object Windows.Forms.Form
-    $form.text = "Select Necessary Parameters"
+    $form.text = "$ScriptDescription - Select Parameters"
     $form.FormBorderStyle = 'FixedDialog'
     $form.MaximizeBox = $False
     $form.MinimizeBox = $False
@@ -436,14 +436,106 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 	    {
 		$paramType = $param.Type
 	    }
-	    switch -wildcard ($paramType.toLower())
+	    $paramIsFSChooser = $False
+	    switch -regex ($paramType.toLower())
 	    {
-		"bool*"
+		"bool.*"
 		{
 		    $paramInput = New-Object Windows.Forms.CheckBox
 		    $paramInput.Location = New-Object Drawing.Point 165, $yOffset
-		    $ParamInput.Size = New-Object Drawing.Point 40, 20    
-		    $paramInput.checked = [System.Convert]::ToBoolean($param.Value)
+		    $ParamInput.Size = New-Object Drawing.Point 40, 20 
+		    if($param.Value -ne $Null -and $param.Value -ne '')
+		    {   
+			$paramInput.checked = [System.Convert]::ToBoolean($param.Value)
+		    }
+		    break
+		}
+		"number"
+		{
+		    $paramInput = New-Object Windows.Forms.NumericUpDown
+		    $paramInput.Location = New-Object Drawing.Point 165, $yOffset
+		    $paramInput.Size = New-Object Drawing.Point 80, 20
+		    if($param.Value -ne $Null -and $param.Value -ne '')
+		    {
+			$paramInput.Value = [System.Convert]::ToDouble($param.Value)
+		    }
+		    break
+		}
+		"file.*"
+		{
+		    $paramInput = New-Object Windows.Forms.TextBox
+		    $paramInput.Location = New-Object Drawing.Point 165, $yOffset
+		    $paramInput.Size = New-Object Drawing.Point 150, 20
+		    $paramInput.Text = $param.Value
+
+		    $fileButton = New-Object Windows.Forms.Button
+		    $fileButton.Location = New-Object Drawing.Point 315,$yOffset
+		    $fileButton.Size = New-Object Drawing.Point 85, 20
+		    $fileButton.Text = 'Browse...'
+		    $fileButton | Add-Member NoteProperty Box $paramInput
+		    $fileButton.add_click(
+		    {
+			$fileDlg = New-Object Windows.Forms.OpenFileDialog
+			#ShowHelp flag required for proper showing in PoSH
+			$fileDlg.ShowHelp = $True
+			$fileDlg.CheckFileExists = $True
+			$fileDlg.Filter = "All files (*.*)|*.*"
+			$fileDlg.ShowDialog()
+			#Dirty, Dirty hack, but only way I could think
+			#of finding the right text box to fill in
+			#was using the tabindex of the button pushed
+			#and finding the right textbox based on it's
+			#tabindex offset from the browse button
+			$fileText = ($form.controls | Where-Object {$_.TabIndex -eq ($this.TabIndex-1)})
+			$fileText.Text = $fileDlg.FileName
+		    })
+		    #$form.controls.add($fileButton)
+		    $paramIsFSChooser = $True
+		    break
+		}
+		"(folder)|(dir.*)"
+		{
+		    $paramInput = New-Object Windows.Forms.TextBox
+		    $paramInput.Location = New-Object Drawing.Point 165, $yOffset
+		    $paramInput.Size = New-Object Drawing.Point 150, 20
+		    $paramInput.Text = $param.Value
+
+		    $fileButton = New-Object Windows.Forms.Button
+		    $fileButton.Location = New-Object Drawing.Point 315,$yOffset
+		    $fileButton.Size = New-Object Drawing.Point 85, 20
+		    $fileButton.Text = 'Browse...'
+		    $fileButton | Add-Member NoteProperty Box $paramInput
+		    $fileButton.add_click(
+		    {
+			$app = New-Object -com Shell.Application
+			$path = (Get-Location).path
+			$folder = $app.BrowseForFolder(0, "Select a folder to look for framework scripts in.", 0,'Desktop') 
+			if($folder.Self.Path -ne '')
+			{
+			    $fileText = ($form.controls | Where-Object {$_.TabIndex -eq ($this.TabIndex-1)})
+			    $fileText.Text = $folder.Self.Path
+			}
+		    })
+		    #$form.controls.add($fileButton)
+		    $paramIsFSChooser = $True
+		    break
+		    
+		}
+		"(list)|(choice)"
+		{
+		    $paramInput = New-Object Windows.Forms.ComboBox
+		    $paramInput.Location = New-Object Drawing.Point 165, $yOffset
+		    $paramInput.Size = New-Object Drawing.Point 150, 20
+		    if($param.Value -ne $Null -and $param.Value -ne '')
+		    {
+			$items = ($param.Value).split('|')
+			foreach($item in $items)
+			{
+			    $kill = $paramInput.items.add($item)
+			}
+			$paramInput.SelectedIndex = 0
+		    }
+		    break
 		}
 		default
 		{
@@ -464,6 +556,10 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 	    $yOffset+= 25
 	    $form.controls.add($paramLabel)
 	    $form.controls.add($paramInput)
+	    if($paramIsFSChooser -eq $True)
+	    {
+		$form.controls.add($fileButton)
+	    }
 	}
     }
 
@@ -496,13 +592,19 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 	{
 	    $return_param = New-Object PSObject
 	    $return_param | add-member NoteProperty Name $field.Name
-	    $type = $field.getType()
-	    $type = $field.Name
-	    switch -wildcard ($type)
+
+	    $type = $field.Box.getType()
+	    $type = $type.Name
+
+	    switch ($type)
 	    {
 		"CheckBox"
 		{
 		    $return_param | add-member NoteProperty Value $field.Box.Checked
+		}
+		"NumericUpDown"
+		{
+		    $return_param | add-member NoteProperty Value $field.Box.Value
 		}
 		default
 		{
@@ -812,9 +914,11 @@ if( $OU -eq $True -and $CSV -eq $True )
 
 $CleanedParameters = Parse-Parameters $ScriptParameters $Parameters
 $params = Build-Parameters $OU $CSV $CleanedParameters $ADSPath $CSVPath
+write-host $params.Parameters
 
 if($params.Parameters.length -gt 0)
 {
+    write-host "buah?"
     foreach($var in $params.Parameters)
     {
 	New-Variable -name $var.Name -value $var.Value
