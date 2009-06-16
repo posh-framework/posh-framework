@@ -914,11 +914,9 @@ if( $OU -eq $True -and $CSV -eq $True )
 
 $CleanedParameters = Parse-Parameters $ScriptParameters $Parameters
 $params = Build-Parameters $OU $CSV $CleanedParameters $ADSPath $CSVPath
-write-host $params.Parameters
 
 if($params.Parameters.length -gt 0)
 {
-    write-host "buah?"
     foreach($var in $params.Parameters)
     {
 	New-Variable -name $var.Name -value $var.Value
