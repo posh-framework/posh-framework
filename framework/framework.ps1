@@ -912,6 +912,7 @@ if( $OU -eq $True -and $CSV -eq $True )
 #Get the parameters passed in, if they aren't then we'll set them
 . $ScriptPath
 
+$ScriptAbsPath = (Get-Item $ScriptPath).fullName
 $CleanedParameters = Parse-Parameters $ScriptParameters $Parameters
 $params = Build-Parameters $OU $CSV $CleanedParameters $ADSPath $CSVPath
 
@@ -982,6 +983,8 @@ if( ($OU -eq $True -and $ADSPath -ne '') -or ($CSV -eq $True -and $CSVPath -ne '
 	    Set-ThreadVariable $thread 'ADSPath' $ADSPath
 	    Set-ThreadVariable $thread 'CSV' $CSV
 	    Set-ThreadVariable $thread 'CSVPath' $CSVPath
+	    Set-ThreadVariable $thread 'ScriptPath' $ScriptPath
+	    Set-ThreadVariable $thread 'ScriptAbsPath' $ScriptAbsPath
 	    if( $params.Parameters -ne $Null -and $params.Parameters -ne '')
 	    {
 		foreach($param in $params.Parameters)
