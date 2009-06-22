@@ -347,7 +347,7 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 	$domainCombo.Location = New-Object Drawing.Point 165, 15
 	$domainCombo.Size = New-Object Drawing.Point 235, 20
 	$domainCombo.TabIndex = 1
-	$currentDN = [String] ([ADSI]"")
+	$currentDN = [ADSI]""
 	if($currentDN.distinguishedName -ne $Null)
 	{
 	    $currentDN = $currentDN.distinguishedName[0]
