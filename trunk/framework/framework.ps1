@@ -997,6 +997,14 @@ if( ($OU -eq $True -and $ADSPath -ne '') -or ($CSV -eq $True -and $CSVPath -ne '
         }
 	else
 	{
+	    if($OU -eq $True)
+	    {
+		$ADSObject = $Object
+	    }
+	    elseif($CSV -eq $True)
+	    {
+		$CSVObject = $Object
+	    }
 	    $ScriptBlock.Invoke()
 	}
     }
@@ -1007,6 +1015,6 @@ if( ($OU -eq $True -and $ADSPath -ne '') -or ($CSV -eq $True -and $CSVPath -ne '
 }
 else
 {
-    #The simple case, just run the code
+    #The simple case, just run the code    
     $ScriptBlock.Invoke()
 }
