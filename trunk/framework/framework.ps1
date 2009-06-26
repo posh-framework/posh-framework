@@ -736,6 +736,7 @@ function Stop-Thread
         if ($thread.Pipeline.PipelineStateInfo.State -eq "Running")
 	{
             $thread.Pipeline.StopAsync()
+	    $thread.runspace.close()
         }
     }
 }
@@ -795,6 +796,7 @@ function Join-Thread
             }
         }
     }
+    $thread.runspace.close()
 }
 
 function Invoke-ThreadExpression
@@ -962,7 +964,7 @@ if( ($OU -eq $True -and $ADSPath -ne '') -or ($CSV -eq $True -and $CSVPath -ne '
     {
 	if( $ScriptThreaded -eq $True )
 	{
-	    if( ($ObjectCount % 64) -eq 0 )
+	    if( ($ObjectCount % 128) -eq 0 )
 	    {
 		#Limit number of threads to 32 to prevent out
 		#of memory problems
