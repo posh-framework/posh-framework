@@ -1,0 +1,15 @@
+July 8, 2009 - Added a script that will backup all the GPOs in a specified domain.
+
+June 26, 2009 - Fixed a thread handling memory leak that would cause
+		out of memory exceptions on large OUs/CSVs
+
+June 22, 2009 - Added new script to check remote registry values
+
+Jun 17, 2009 - Added $ScriptPath and $ScriptAbsPath to 
+		thread variables, for finding out the location 
+		of the script that was chosen
+
+Jun 4, 2009 - Added parameter types for numbers, lists, files, and directories.
+		See frameworkharness.ps1 for examples.
+
+May 24, 2009 - Fixed dialog focus.  Added CSV functionality
