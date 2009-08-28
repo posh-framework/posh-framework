@@ -37,7 +37,7 @@ function Parse-Parameters {
 
     if($ScriptParameters.length -eq 0)
     {
-	#Don't care what was passed in, there are no parameters
+	# Don't care what was passed in, there are no parameters
 	return $ScriptParameters
     }
     if($ArgParameters -ne $Null -and $ArgParameters -ne '')
@@ -46,6 +46,14 @@ function Parse-Parameters {
         foreach($Item in $ArgParameters)
 	{
 	    $values = ([String]$item).split(':')
+
+	    # Fix poor choice of delimiter
+	    if( $values.length -gt 2 )
+	    {
+		$temp_value = $values[1..($values.length-1)]
+		$values[1] = [String]::join(':',$temp_value)
+	    }
+
 	    $nameValue = $values[1]
 	    if($nameValue -eq '' -or $nameValue -eq $Null)
 	    {
@@ -57,8 +65,8 @@ function Parse-Parameters {
             $PassedParameters += $param
 	}
     }
-    #Now I have script passed and arg passed parameters
-    #fill in the script passed vars with the arg passed values
+    # Now I have script passed and arg passed parameters
+    # fill in the script passed vars with the arg passed values
     foreach($Item in $ScriptParameters)
     {
 	$PassedParam = $PassedParameters | Where-Object {$_.Name -eq $Item.Name}
@@ -121,7 +129,7 @@ function Build-Parameters
     $return_object | add-member noteproperty ADSPath $CleanADSPath
     $return_object | add-member noteproperty CSVPath $CleanCSVPath
 
-    #Create and display the GUI for picking OU, and Parameters
+    # Create and display the GUI for picking OU, and Parameters
     if( $getParams -eq $True -or $getADSPath -eq $True -or $getCSVPath -eq $True)
     {
 	$new_param_object = Show-ParamGUI $getADSPath $getCSVPath $getParams $Parameters
@@ -165,7 +173,7 @@ function Show-ScriptChooser
     function Populate-Scripts
     {
 	$kill = $ScriptList.Items.Clear()
-	#Test populating listview
+	# Test populating listview
 	if( (Test-Path -path $FileText.Text) -ne $True)
 	{
 	    return $Null
@@ -181,9 +189,9 @@ function Show-ScriptChooser
 		{
 		    break
 		}
-		#Find ps1 files in the $path that have framework variables
-		#Then dot source the script from a [ScriptBlock] "sand box"
-		#that matches and grab the value of the Description
+		# Find ps1 files in the $path that have framework variables
+		# Then dot source the script from a [ScriptBlock] "sand box"
+		# that matches and grab the value of the Description
 		$ScriptMatch = Get-Content $path\$script | Select-String -pattern 'ScriptBlock','ScriptDescription','ScriptParameters'
 		if( $ScriptMatch.Count -gt 2 )
 		{
@@ -215,7 +223,7 @@ function Show-ScriptChooser
     $folderLabel.Text = "Folder Containing Framework Script:"
     $form.controls.add($folderLabel)
 
-    #File picking textbox and button
+    # File picking textbox and button
     $fileText = New-Object Windows.Forms.TextBox
     $fileText.Location = New-Object Drawing.Point 210, $yOffset
     $fileText.Size = New-Object Drawing.Point 150, 20
@@ -224,7 +232,7 @@ function Show-ScriptChooser
     $fileText.add_TextChanged({Populate-Scripts})
     $form.controls.add($fileText)
 
-    #Stupid MTA/STA junk, use com instead of .NET for browser dialog
+    # Stupid MTA/STA junk, use com instead of .NET for browser dialog
     #$folderDialog = New-Object Windows.Forms.FolderBrowserDialog
     #$folderDialog.ShowNewFolderButton = $False
     #$folderDialog.Description = "Select a folder to look for framework scripts in."
@@ -238,7 +246,7 @@ function Show-ScriptChooser
     $yOffset += 25
     $form.controls.add($fileButton)
    
-    #OU Flag Checkbox
+    # OU Flag Checkbox
     $ouLabel = New-Object Windows.Forms.Label
     $ouLabel.Location = New-Object Drawing.Point 10,$yOffset
     $ouLabel.Size = New-Object Drawing.Point 130, 20
@@ -252,7 +260,7 @@ function Show-ScriptChooser
     $ouCheckBox.add_click({$csvCheckBox.checked = $False})
     $form.controls.add($ouCheckBox)
 
-    #CSV Flag
+    # CSV Flag
     $csvLabel = New-Object Windows.Forms.Label
     $csvLabel.Location = New-Object Drawing.Point 180,$yOffset
     $csvLabel.Size = New-Object Drawing.Point 130, 20
@@ -269,7 +277,7 @@ function Show-ScriptChooser
     $yOffset += 30
     
 
-    #ListView for showing the scripts that are framework compatible
+    # ListView for showing the scripts that are framework compatible
     $listLabel = New-Object Windows.Forms.Label
     $listLabel.Location = New-Object Drawing.Point 10,$yOffset
     $listLabel.Size = New-Object Drawing.Point 200, 20
@@ -310,7 +318,7 @@ function Show-ScriptChooser
 	return $return_object
     }
     $ScriptPath = $FileText.Text + '\' + $ScriptList.SelectedItems[0].Text
-    #Return ScriptPath and OU
+    # Return ScriptPath and OU
     $return_object = New-Object PSObject
     $return_object | Add-Member NoteProperty OU $OUCheckBox.Checked
     $return_object | Add-Member NoteProperty CSV $CSVCheckBox.Checked
@@ -397,7 +405,7 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 	$fileButton.add_click(
 	{
 	    $fileDlg = New-Object Windows.Forms.OpenFileDialog
-	    #ShowHelp flag required for proper showing in PoSH
+	    # ShowHelp flag required for proper showing in PoSH
 	    $fileDlg.ShowHelp = $True
 	    $fileDlg.CheckFileExists = $True
 	    $fileDlg.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*"
@@ -426,8 +434,8 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 		$paramLabel.Text = $param.Display
 	    }
 	    
-	    #Look for parameter type field
-	    #If set, show an appropriate input type
+	    # Look for parameter type field
+	    # If set, show an appropriate input type
 	    if( $param.Type -eq $Null -or $param.Type -eq '')
 	    {
 		$paramType = 'String'
@@ -476,20 +484,20 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 		    $fileButton.add_click(
 		    {
 			$fileDlg = New-Object Windows.Forms.OpenFileDialog
-			#ShowHelp flag required for proper showing in PoSH
+			# ShowHelp flag required for proper showing in PoSH
 			$fileDlg.ShowHelp = $True
 			$fileDlg.CheckFileExists = $True
 			$fileDlg.Filter = "All files (*.*)|*.*"
 			$fileDlg.ShowDialog()
-			#Dirty, Dirty hack, but only way I could think
-			#of finding the right text box to fill in
-			#was using the tabindex of the button pushed
-			#and finding the right textbox based on it's
-			#tabindex offset from the browse button
+			# Dirty, Dirty hack, but only way I could think
+			# of finding the right text box to fill in
+			# was using the tabindex of the button pushed
+			# and finding the right textbox based on it's
+			# tabindex offset from the browse button
 			$fileText = ($form.controls | Where-Object {$_.TabIndex -eq ($this.TabIndex-1)})
 			$fileText.Text = $fileDlg.FileName
 		    })
-		    #$form.controls.add($fileButton)
+		    # $form.controls.add($fileButton)
 		    $paramIsFSChooser = $True
 		    break
 		}
@@ -516,7 +524,7 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 			    $fileText.Text = $folder.Self.Path
 			}
 		    })
-		    #$form.controls.add($fileButton)
+		    # $form.controls.add($fileButton)
 		    $paramIsFSChooser = $True
 		    break
 		    
@@ -570,12 +578,12 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
     $kill = $finishButton.add_click({go})
     $form.controls.add($finishButton)	
 
-    #Show the form
+    # Show the form
 
     $form.Size = New-Object Drawing.Point 410, ($yOffset+50)
     $form.add_Shown({ $form.activate(); if($getOU -eq $True) {$kill = populateTree $OUTree }})
     $kill = $form.ShowDialog()
-    #Return PSObject with ADSPath and parameter array
+    # Return PSObject with ADSPath and parameter array
     $return_val = New-Object PSObject
     if($getOU -eq $True)
     {
@@ -623,7 +631,7 @@ function Show-ParamGUI($getOU, $getCSV, $getParams, $parameters)
 
 function populateTree($treeView)
 {
-	#Clear Tree
+	# Clear Tree
 	$kill = $treeView.nodes.clear()
 	$kill = recurseOUs "" $treeView $domainCombo.text
 }
@@ -880,7 +888,7 @@ function Get-ADObjects($searchpath, $domain, $objectCategory)
 
 
 
-#This is MAIN
+# This is MAIN
 if( $OU -eq $True -and $CSV -eq $True )
 {
     Write-Host "You cannot specify both -OU and -CSV as true"
@@ -888,7 +896,7 @@ if( $OU -eq $True -and $CSV -eq $True )
 }
 
 
-#Check if a script was passed in, if not, then show script-chooser
+# Check if a script was passed in, if not, then show script-chooser
 if($ScriptPath -eq '')
 {
     $Chooser = Show-ScriptChooser
@@ -911,7 +919,7 @@ if( $OU -eq $True -and $CSV -eq $True )
     exit
 }
 
-#Get the parameters passed in, if they aren't then we'll set them
+# Get the parameters passed in, if they aren't then we'll set them
 . $ScriptPath
 
 $ScriptAbsPath = (Get-Item $ScriptPath).fullName
@@ -936,8 +944,8 @@ if( ($OU -eq $True -and $ADSPath -ne '') -or ($CSV -eq $True -and $CSVPath -ne '
 {
     if( $OU -eq $True )
     {
-	#Grab objects from AD at the specified location and lower
-	#If ADObjectType is not defined, then default to computer
+	# Grab objects from AD at the specified location and lower
+	# If ADObjectType is not defined, then default to computer
 	if($ScriptADSObjectType -eq $Null -or $ScriptADSObjectType -eq '')
 	{
 	    $ADSObjectType = 'computer'
@@ -966,8 +974,8 @@ if( ($OU -eq $True -and $ADSPath -ne '') -or ($CSV -eq $True -and $CSVPath -ne '
 	{
 	    if( ($ObjectCount % 128) -eq 0 )
 	    {
-		#Limit number of threads to 32 to prevent out
-		#of memory problems
+		# Limit number of threads to 32 to prevent out
+		# of memory problems
 		foreach( $thread in $threads ) { Join-Thread $thread }
 		$threads = @();
 	    }
@@ -1017,6 +1025,73 @@ if( ($OU -eq $True -and $ADSPath -ne '') -or ($CSV -eq $True -and $CSVPath -ne '
 }
 else
 {
-    #The simple case, just run the code    
+    # The simple case, just run the code    
     $ScriptBlock.Invoke()
 }
+
+# Feature Request 24450 Print line to execute script again with same
+# parameters entered in the GUI
+function Get-ScriptPath
+{
+	$myInvocation.ScriptName
+}
+
+$CommandLine = Get-ScriptPath
+$CommandLine += ' -ScriptPath ' + $ScriptAbsPath
+
+if( $OU -ne '' )
+{
+    $CommandLine += ' -OU '
+    if( $OU )
+    {
+	$CommandLine += '$True'
+    }
+    else
+    {
+	$CommandLine += '$False'
+    }
+    
+}
+
+if( $CSV -ne '' )
+{
+    $CommandLine += " -CSV "  
+    if( $CSV )
+    {
+	$CommandLine += '$True'
+    }
+    else
+    {
+	$CommandLine += '$False'
+    }
+    
+}
+
+if( $ADSPath -ne '' )
+{
+    $CommandLine += " -ADSPath `"" + $ADSPath + '"'
+}
+
+if( $CSVPath -ne '' )
+{
+    $CommandLine += " -CSVPath `"" + $CSVPath + '"'
+}
+
+if($params.Parameters.length -gt 0)
+{
+    $CommandLine += ' -Parameters '
+    
+    $loopCount = 0
+    foreach($var in $params.Parameters)
+    {
+	$CommandLine += '"' + [String]$var.Name + ':' + [String]$var.Value + '"'
+	$loopCount += 1
+	if( $loopCount -lt $params.Parameters.length )
+	{
+	    $CommandLine += ', '
+	}
+    }
+}
+
+Write-Host "`n`nReplay Command:"
+Write-Host $CommandLine
